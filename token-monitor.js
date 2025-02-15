@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { ethers } = require('ethers');
 
 const ERC20_ABI = [
@@ -68,7 +69,8 @@ class TokenMonitor {
             }
 
             const amountNum = parseFloat(amount);
-            if (amountNum > 1000000) {
+            const threshold = process.env.LARGE_AMOUNT_THRESHOLD || 1000000;
+            if (amountNum > threshold) {
                 console.log(`🚨 大额转账警告: ${amount} ${tokenInfo.symbol}`);
             }
         });
@@ -88,32 +90,26 @@ class TokenMonitor {
 }
 
 async function main() {
-    const readline = require('readline');
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
-    function question(prompt) {
-        return new Promise((resolve) => {
-            rl.question(prompt, resolve);
-        });
-    }
-
     try {
         console.log('=== ERC-20 代币转账监听工具 ===');
         
-        const rpcUrl = await question('请输入 RPC 节点地址 (默认使用 Ethereum 主网): ') 
-            || 'https://eth.llamarpc.com';
+        const rpcUrl = process.env.RPC_URL || 'https://eth.llamarpc.com';
+        const tokenAddress = process.env.TOKEN_ADDRESS;
         
-        const tokenAddress = await question('请输入要监听的代币合约地址: ');
+        if (!tokenAddress) {
+            console.error('错误: 请在 .env 文件中设置 TOKEN_ADDRESS');
+            console.log('示例: TOKEN_ADDRESS=0xdAC17F958D2ee523a2206206994597C13D831ec7');
+            return;
+        }
         
         if (!ethers.isAddress(tokenAddress)) {
-            console.error('无效的合约地址');
-            rl.close();
+            console.error('错误: 无效的合约地址');
             return;
         }
 
+        console.log(`RPC 节点: ${rpcUrl}`);
+        console.log(`监听合约: ${tokenAddress}`);
+        
         const monitor = new TokenMonitor(rpcUrl, tokenAddress);
         
         console.log('\n按 Ctrl+C 停止监听\n');
@@ -123,13 +119,11 @@ async function main() {
         process.on('SIGINT', () => {
             console.log('\n正在停止监听...');
             monitor.stopMonitoring();
-            rl.close();
             process.exit(0);
         });
 
     } catch (error) {
         console.error('程序错误:', error.message);
-        rl.close();
     }
 }
 

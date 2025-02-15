@@ -16,21 +16,31 @@
 npm install
 ```
 
+## 配置
+
+1. 复制环境变量模板：
+```bash
+cp .env.example .env
+```
+
+2. 编辑 `.env` 文件，设置必要参数：
+```bash
+# RPC 节点地址
+RPC_URL=https://eth.llamarpc.com
+
+# 要监听的代币合约地址
+TOKEN_ADDRESS=0xdAC17F958D2ee523a2206206994597C13D831ec7
+
+# 大额转账警告阈值
+LARGE_AMOUNT_THRESHOLD=1000000
+```
+
 ## 使用方法
 
-### 方式一：直接运行
 ```bash
-node token-monitor.js
-```
-
-### 方式二：使用 npm 脚本
-```bash
+npm install
 npm run monitor
 ```
-
-运行后程序会提示输入：
-1. RPC 节点地址（默认使用以太坊主网）
-2. 要监听的代币合约地址
 
 ## 示例
 

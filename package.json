@@ -11,6 +11,7 @@
     "monitor": "node token-monitor.js"
   },
   "dependencies": {
-    "ethers": "^6.0.0"
+    "ethers": "^6.0.0",
+    "dotenv": "^16.0.0"
   }
 }
