@@ -9,10 +9,11 @@ const ERC20_ABI = [
 ];
 
 class TokenMonitor {
-    constructor(rpcUrl, tokenAddress) {
+    constructor(rpcUrl, tokenAddress, watchAddress = null) {
         this.provider = new ethers.JsonRpcProvider(rpcUrl);
         this.tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, this.provider);
         this.tokenAddress = tokenAddress;
+        this.watchAddress = watchAddress;
         this.isMonitoring = false;
     }
 
@@ -45,11 +46,20 @@ class TokenMonitor {
         console.log(`开始监听代币: ${tokenInfo.name} (${tokenInfo.symbol})`);
         console.log(`代币地址: ${this.tokenAddress}`);
         console.log(`小数位数: ${tokenInfo.decimals}`);
+        if (this.watchAddress) {
+            console.log(`🎯 监听模式: 仅监听从地址 ${this.watchAddress} 转出的代币`);
+        } else {
+            console.log(`🎯 监听模式: 监听所有转账`);
+        }
         console.log('----------------------------');
 
         this.isMonitoring = true;
 
         this.tokenContract.on('Transfer', (from, to, value, event) => {
+            if (this.watchAddress && from.toLowerCase() !== this.watchAddress.toLowerCase()) {
+                return;
+            }
+
             const amount = ethers.formatUnits(value, tokenInfo.decimals);
             const timestamp = new Date().toLocaleString('zh-CN');
             
@@ -60,6 +70,10 @@ class TokenMonitor {
             console.log(`  交易哈希: ${event.log.transactionHash}`);
             console.log(`  区块号: ${event.log.blockNumber}`);
             console.log('----------------------------');
+
+            if (this.watchAddress) {
+                console.log(`🔍 地址 ${this.watchAddress} 转出代币`);
+            }
 
             if (from === ethers.ZeroAddress) {
                 console.log(`⚠️  铸币检测: 新增 ${amount} ${tokenInfo.symbol}`);
@@ -95,6 +109,7 @@ async function main() {
         
         const rpcUrl = process.env.RPC_URL || 'https://eth.llamarpc.com';
         const tokenAddress = process.env.TOKEN_ADDRESS;
+        const watchAddress = process.env.WATCH_ADDRESS;
         
         if (!tokenAddress) {
             console.error('错误: 请在 .env 文件中设置 TOKEN_ADDRESS');
@@ -107,10 +122,18 @@ async function main() {
             return;
         }
 
+        if (watchAddress && !ethers.isAddress(watchAddress)) {
+            console.error('错误: 无效的监听地址 WATCH_ADDRESS');
+            return;
+        }
+
         console.log(`RPC 节点: ${rpcUrl}`);
         console.log(`监听合约: ${tokenAddress}`);
+        if (watchAddress) {
+            console.log(`监听地址: ${watchAddress}`);
+        }
         
-        const monitor = new TokenMonitor(rpcUrl, tokenAddress);
+        const monitor = new TokenMonitor(rpcUrl, tokenAddress, watchAddress);
         
         console.log('\n按 Ctrl+C 停止监听\n');
         

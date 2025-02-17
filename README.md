@@ -9,6 +9,7 @@
 - 自动检测铸币和销毁操作
 - 大额转账警告
 - 支持自定义 RPC 节点和代币合约地址
+- **新增**: 支持仅监听从特定地址转出的代币
 
 ## 安装
 
@@ -31,6 +32,9 @@ RPC_URL=https://eth.llamarpc.com
 # 要监听的代币合约地址
 TOKEN_ADDRESS=0xdAC17F958D2ee523a2206206994597C13D831ec7
 
+# 可选：仅监听从特定地址转出的代币（如不设置则监听所有转账）
+WATCH_ADDRESS=0x742d35Cc6aF2C0532845e1a3C8B8d00a5A09df82
+
 # 大额转账警告阈值
 LARGE_AMOUNT_THRESHOLD=1000000
 ```
@@ -47,6 +51,10 @@ npm run monitor
 监听 USDT 代币转账：
 - 合约地址：`0xdAC17F958D2ee523a2206206994597C13D831ec7`
 - RPC：使用默认节点或自定义节点
+
+仅监听特定地址转出：
+- 设置 `WATCH_ADDRESS` 环境变量为目标地址
+- 例如：`WATCH_ADDRESS=0x742d35Cc6aF2C0532845e1a3C8B8d00a5A09df82`
 
 ## 安全提醒
 
