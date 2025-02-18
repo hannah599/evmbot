@@ -10,6 +10,8 @@
 - 大额转账警告
 - 支持自定义 RPC 节点和代币合约地址
 - **新增**: 支持仅监听从特定地址转出的代币
+- **新增**: 支持仅监听转入到特定地址的代币
+- **新增**: 支持同时设置转出和转入地址进行精确监听
 
 ## 安装
 
@@ -32,8 +34,11 @@ RPC_URL=https://eth.llamarpc.com
 # 要监听的代币合约地址
 TOKEN_ADDRESS=0xdAC17F958D2ee523a2206206994597C13D831ec7
 
-# 可选：仅监听从特定地址转出的代币（如不设置则监听所有转账）
-WATCH_ADDRESS=0x742d35Cc6aF2C0532845e1a3C8B8d00a5A09df82
+# 可选：仅监听从特定地址转出的代币
+WATCH_FROM_ADDRESS=0x742d35Cc6aF2C0532845e1a3C8B8d00a5A09df82
+
+# 可选：仅监听转入到特定地址的代币
+WATCH_TO_ADDRESS=0x8ba1f109551bD432803012645Hac136c22C177ec
 
 # 大额转账警告阈值
 LARGE_AMOUNT_THRESHOLD=1000000
@@ -52,9 +57,16 @@ npm run monitor
 - 合约地址：`0xdAC17F958D2ee523a2206206994597C13D831ec7`
 - RPC：使用默认节点或自定义节点
 
-仅监听特定地址转出：
-- 设置 `WATCH_ADDRESS` 环境变量为目标地址
-- 例如：`WATCH_ADDRESS=0x742d35Cc6aF2C0532845e1a3C8B8d00a5A09df82`
+监听特定转账模式：
+
+1. 仅监听特定地址转出：
+   - 设置 `WATCH_FROM_ADDRESS=0x742d35Cc6aF2C0532845e1a3C8B8d00a5A09df82`
+
+2. 仅监听特定地址转入：
+   - 设置 `WATCH_TO_ADDRESS=0x8ba1f109551bD432803012645Hac136c22C177ec`
+
+3. 精确监听（特定地址间的转账）：
+   - 同时设置 `WATCH_FROM_ADDRESS` 和 `WATCH_TO_ADDRESS`
 
 ## 安全提醒
 
