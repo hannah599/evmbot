@@ -27,7 +27,7 @@ class TokenMonitor {
             ]);
             return { name, symbol, decimals };
         } catch (error) {
-            console.error('获取代币信息失败:', error.message);
+            console.error('Failed to get token info:', error.message);
             return null;
         }
     }
@@ -46,41 +46,41 @@ class TokenMonitor {
 
     logTransferType(from, to) {
         if (this.watchFromAddress && this.watchToAddress) {
-            console.log(`🔍 监控转账: ${this.watchFromAddress} → ${this.watchToAddress}`);
+            console.log(`🔍 Monitored transfer: ${this.watchFromAddress} → ${this.watchToAddress}`);
         } else if (this.watchFromAddress) {
-            console.log(`🔍 地址 ${this.watchFromAddress} 转出代币`);
+            console.log(`🔍 Address ${this.watchFromAddress} sent tokens`);
         } else if (this.watchToAddress) {
-            console.log(`🔍 地址 ${this.watchToAddress} 接收代币`);
+            console.log(`🔍 Address ${this.watchToAddress} received tokens`);
         }
     }
 
     async startMonitoring() {
         if (this.isMonitoring) {
-            console.log('监听已在运行中...');
+            console.log('Monitoring is already running...');
             return;
         }
 
         const tokenInfo = await this.getTokenInfo();
         if (!tokenInfo) {
-            console.error('无法获取代币信息，监听终止');
+            console.error('Unable to get token info, monitoring terminated');
             return;
         }
 
-        console.log(`开始监听代币: ${tokenInfo.name} (${tokenInfo.symbol})`);
-        console.log(`代币地址: ${this.tokenAddress}`);
-        console.log(`小数位数: ${tokenInfo.decimals}`);
+        console.log(`Starting to monitor token: ${tokenInfo.name} (${tokenInfo.symbol})`);
+        console.log(`Token address: ${this.tokenAddress}`);
+        console.log(`Decimals: ${tokenInfo.decimals}`);
         
         let monitoringMode = '';
         if (this.watchFromAddress && this.watchToAddress) {
-            monitoringMode = `仅监听从地址 ${this.watchFromAddress} 转出到地址 ${this.watchToAddress} 的代币`;
+            monitoringMode = `Monitor transfers from ${this.watchFromAddress} to ${this.watchToAddress} only`;
         } else if (this.watchFromAddress) {
-            monitoringMode = `仅监听从地址 ${this.watchFromAddress} 转出的代币`;
+            monitoringMode = `Monitor transfers from address ${this.watchFromAddress} only`;
         } else if (this.watchToAddress) {
-            monitoringMode = `仅监听转入到地址 ${this.watchToAddress} 的代币`;
+            monitoringMode = `Monitor transfers to address ${this.watchToAddress} only`;
         } else {
-            monitoringMode = '监听所有转账';
+            monitoringMode = 'Monitor all transfers';
         }
-        console.log(`🎯 监听模式: ${monitoringMode}`);
+        console.log(`🎯 Monitoring mode: ${monitoringMode}`);
         console.log('----------------------------');
 
         this.isMonitoring = true;
@@ -92,34 +92,34 @@ class TokenMonitor {
             }
 
             const amount = ethers.formatUnits(value, tokenInfo.decimals);
-            const timestamp = new Date().toLocaleString('zh-CN');
+            const timestamp = new Date().toISOString();
             
-            console.log(`[${timestamp}] 检测到转账:`);
-            console.log(`  从: ${from}`);
-            console.log(`  到: ${to}`);
-            console.log(`  数量: ${amount} ${tokenInfo.symbol}`);
-            console.log(`  交易哈希: ${event.log.transactionHash}`);
-            console.log(`  区块号: ${event.log.blockNumber}`);
+            console.log(`[${timestamp}] Transfer detected:`);
+            console.log(`  From: ${from}`);
+            console.log(`  To: ${to}`);
+            console.log(`  Amount: ${amount} ${tokenInfo.symbol}`);
+            console.log(`  Transaction hash: ${event.log.transactionHash}`);
+            console.log(`  Block number: ${event.log.blockNumber}`);
             console.log('----------------------------');
 
             this.logTransferType(from, to);
 
             if (from === ethers.ZeroAddress) {
-                console.log(`⚠️  铸币检测: 新增 ${amount} ${tokenInfo.symbol}`);
+                console.log(`⚠️  Mint detected: Added ${amount} ${tokenInfo.symbol}`);
             }
             if (to === ethers.ZeroAddress) {
-                console.log(`⚠️  销毁检测: 销毁 ${amount} ${tokenInfo.symbol}`);
+                console.log(`⚠️  Burn detected: Burned ${amount} ${tokenInfo.symbol}`);
             }
 
             const amountNum = parseFloat(amount);
             const threshold = process.env.LARGE_AMOUNT_THRESHOLD || 1000000;
             if (amountNum > threshold) {
-                console.log(`🚨 大额转账警告: ${amount} ${tokenInfo.symbol}`);
+                console.log(`🚨 Large transfer alert: ${amount} ${tokenInfo.symbol}`);
             }
         });
 
         this.tokenContract.on('error', (error) => {
-            console.error('监听错误:', error.message);
+            console.error('Monitoring error:', error.message);
         });
     }
 
@@ -127,14 +127,14 @@ class TokenMonitor {
         if (this.isMonitoring) {
             this.tokenContract.removeAllListeners();
             this.isMonitoring = false;
-            console.log('监听已停止');
+            console.log('Monitoring stopped');
         }
     }
 }
 
 async function main() {
     try {
-        console.log('=== ERC-20 代币转账监听工具 ===');
+        console.log('=== ERC-20 Token Transfer Monitor ===');
         
         const rpcUrl = process.env.RPC_URL || 'https://eth.llamarpc.com';
         const tokenAddress = process.env.TOKEN_ADDRESS;
@@ -142,49 +142,49 @@ async function main() {
         const watchToAddress = process.env.WATCH_TO_ADDRESS;
         
         if (!tokenAddress) {
-            console.error('错误: 请在 .env 文件中设置 TOKEN_ADDRESS');
-            console.log('示例: TOKEN_ADDRESS=0xdAC17F958D2ee523a2206206994597C13D831ec7');
+            console.error('Error: Please set TOKEN_ADDRESS in .env file');
+            console.log('Example: TOKEN_ADDRESS=0xdAC17F958D2ee523a2206206994597C13D831ec7');
             return;
         }
         
         if (!ethers.isAddress(tokenAddress)) {
-            console.error('错误: 无效的合约地址');
+            console.error('Error: Invalid contract address');
             return;
         }
 
         if (watchFromAddress && !ethers.isAddress(watchFromAddress)) {
-            console.error('错误: 无效的监听地址 WATCH_FROM_ADDRESS');
+            console.error('Error: Invalid watch address WATCH_FROM_ADDRESS');
             return;
         }
 
         if (watchToAddress && !ethers.isAddress(watchToAddress)) {
-            console.error('错误: 无效的监听地址 WATCH_TO_ADDRESS');
+            console.error('Error: Invalid watch address WATCH_TO_ADDRESS');
             return;
         }
 
-        console.log(`RPC 节点: ${rpcUrl}`);
-        console.log(`监听合约: ${tokenAddress}`);
+        console.log(`RPC node: ${rpcUrl}`);
+        console.log(`Monitoring contract: ${tokenAddress}`);
         if (watchFromAddress) {
-            console.log(`监听转出地址: ${watchFromAddress}`);
+            console.log(`Monitoring outgoing from: ${watchFromAddress}`);
         }
         if (watchToAddress) {
-            console.log(`监听转入地址: ${watchToAddress}`);
+            console.log(`Monitoring incoming to: ${watchToAddress}`);
         }
         
         const monitor = new TokenMonitor(rpcUrl, tokenAddress, watchFromAddress, watchToAddress);
         
-        console.log('\n按 Ctrl+C 停止监听\n');
+        console.log('\nPress Ctrl+C to stop monitoring\n');
         
         await monitor.startMonitoring();
 
         process.on('SIGINT', () => {
-            console.log('\n正在停止监听...');
+            console.log('\nStopping monitoring...');
             monitor.stopMonitoring();
             process.exit(0);
         });
 
     } catch (error) {
-        console.error('程序错误:', error.message);
+        console.error('Program error:', error.message);
     }
 }
 
